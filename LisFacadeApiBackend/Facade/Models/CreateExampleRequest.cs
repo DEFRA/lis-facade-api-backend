@@ -1,9 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace LisFacadeApiBackend.Example.Models;
+namespace LisFacadeApiBackend.Facade.Models;
 
-public sealed class UpdateExampleRequest
+public sealed class CreateExampleRequest
 {
+    [Required]
+    [MinLength(1)]
+    public string Name { get; init; } = string.Empty;
+
     [Required]
     [MinLength(1)]
     public string Value { get; init; } = string.Empty;

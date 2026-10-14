@@ -1,4 +1,4 @@
-using LisFacadeApiBackend.Example.Models;
+using LisFacadeApiBackend.Facade.Models;
 using LisFacadeApiBackend.Utils.Mongo;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using LisFacadeApiBackend.Utils.Auditing;
 
-namespace LisFacadeApiBackend.Example.Services;
+namespace LisFacadeApiBackend.Facade.Services;
 
 public interface IExamplePersistence
 {
@@ -99,6 +99,6 @@ public class ExamplePersistence(IMongoDbClientFactory connectionFactory, ILogger
     {
         var options = new CreateIndexOptions { Unique = true };
         var nameIndex = new CreateIndexModel<ExampleModel>(builder.Ascending(e => e.Name), options);
-        return [nameIndex];
+        return [nameIndex]; 
     }
 }

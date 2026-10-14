@@ -1,10 +1,10 @@
-using LisFacadeApiBackend.Example.Models;
-using LisFacadeApiBackend.Example.Services;
+using LisFacadeApiBackend.Facade.Models;
+using LisFacadeApiBackend.Facade.Services;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
-namespace LisFacadeApiBackend.Example.Endpoints;
+namespace LisFacadeApiBackend.Facade.Endpoints;
 
 [ExcludeFromCodeCoverage]
 public static class ExampleEndpoints

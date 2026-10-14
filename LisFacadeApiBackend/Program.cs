@@ -1,5 +1,5 @@
-using LisFacadeApiBackend.Example.Endpoints;
-using LisFacadeApiBackend.Example.Services;
+using LisFacadeApiBackend.Facade.Endpoints;
+using LisFacadeApiBackend.Facade.Services;
 using LisFacadeApiBackend.Config;
 using LisFacadeApiBackend.Utils;
 using LisFacadeApiBackend.Utils.Http;
