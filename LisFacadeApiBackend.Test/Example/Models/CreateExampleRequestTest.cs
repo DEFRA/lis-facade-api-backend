@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
-using LisFacadeApiBackend.Example.Models;
+using LisFacadeApiBackend.Facade.Models;
 
 namespace LisFacadeApiBackend.Test.Example.Models;
 

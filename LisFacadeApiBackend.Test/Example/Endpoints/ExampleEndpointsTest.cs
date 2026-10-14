@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
-using LisFacadeApiBackend.Example.Models;
-using LisFacadeApiBackend.Example.Services;
+using LisFacadeApiBackend.Facade.Models;
+using LisFacadeApiBackend.Facade.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;

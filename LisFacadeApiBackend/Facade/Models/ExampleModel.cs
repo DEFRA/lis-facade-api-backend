@@ -4,7 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.IdGenerators;
 
-namespace LisFacadeApiBackend.Example.Models;
+namespace LisFacadeApiBackend.Facade.Models;
 
 [ExcludeFromCodeCoverage]
 public class ExampleModel

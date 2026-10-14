@@ -1,4 +1,4 @@
-namespace LisFacadeApiBackend.Example.Services;
+namespace LisFacadeApiBackend.Facade.Services;
 
 public sealed class ExampleConflictException(string name, Exception innerException)
     : Exception($"An example record named '{name}' already exists.", innerException);
