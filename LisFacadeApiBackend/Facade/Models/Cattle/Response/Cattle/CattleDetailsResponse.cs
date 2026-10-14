@@ -22,6 +22,15 @@ public sealed class CattleDetailsResponse
     [JsonPropertyName("dateOnCph")]
     public DateOnly? DateOnCph { get; init; }
 
+    [JsonPropertyName("currentLocation")]
+    public CattleLocationResponse? CurrentLocation { get; init; }
+
+    [JsonPropertyName("registeredLocation")]
+    public CattleLocationResponse? RegisteredLocation { get; init; }
+
+    [JsonPropertyName("deathLocation")]
+    public CattleLocationResponse? DeathLocation { get; init; }
+
     [JsonPropertyName("breed")]
     public string? Breed { get; init; }
 

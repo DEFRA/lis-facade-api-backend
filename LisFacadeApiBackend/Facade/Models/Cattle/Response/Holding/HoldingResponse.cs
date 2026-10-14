@@ -18,10 +18,4 @@ public sealed class HoldingResponse
 
     [JsonPropertyName("keeperName")]
     public string? KeeperName { get; init; }
-
-    [JsonPropertyName("herdMarks")]
-    public List<string> HerdMarks { get; init; } = [];
-
-    [JsonPropertyName("allowedSpecies")]
-    public List<string> AllowedSpecies { get; init; } = [];
 }
