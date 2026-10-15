@@ -1,13 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using LisMovementModel = LisFacadeApiBackend.Facade.LIS.Movement.Movement;
 
 namespace LisFacadeApiBackend.Facade.LIS.Request;
 
 public sealed class CreateMovementRequest
 {
     [JsonPropertyName("movementData")]
-    public required LisMovementModel MovementData { get; init; }
+    public required CreateMovementDataRequest MovementData { get; init; }
 
     [JsonPropertyName("document")]
     public DocumentRequest? Document { get; init; }

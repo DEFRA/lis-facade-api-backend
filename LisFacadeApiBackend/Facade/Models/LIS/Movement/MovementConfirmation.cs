@@ -12,7 +12,7 @@ public sealed class MovementConfirmation
     public required ConfirmationAction Action { get; init; }
 
     [JsonPropertyName("number")]
-    public required int? Number { get; init; }
+    public int? Number { get; init; }
 
     [JsonPropertyName("reason")]
     public string? Reason { get; init; }

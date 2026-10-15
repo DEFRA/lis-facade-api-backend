@@ -13,4 +13,7 @@ public sealed class AsyncAcceptedResponse
 
     [JsonPropertyName("requestDate")]
     public DateTimeOffset? RequestDate { get; init; }
+
+    [JsonPropertyName("requestStatusUrl")]
+    public required string RequestStatusUrl { get; init; }
 }

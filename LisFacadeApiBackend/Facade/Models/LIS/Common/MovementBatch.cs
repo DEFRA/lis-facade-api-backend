@@ -1,8 +1,10 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using LisFacadeApiBackend.Facade.LIS.Enums;
 
 namespace LisFacadeApiBackend.Facade.LIS.Common;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class MovementBatch
 {
     [JsonPropertyName("species")]
@@ -12,16 +14,48 @@ public sealed class MovementBatch
     public List<BatchAnimal>? Animals { get; init; }
 }
 
+[JsonConverter(typeof(BatchAnimalJsonConverter))]
 public abstract class BatchAnimal
 {
 }
 
+public sealed class BatchAnimalJsonConverter : JsonConverter<BatchAnimal>
+{
+    public override BatchAnimal Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        using var document = JsonDocument.ParseValue(ref reader);
+        var root = document.RootElement;
+
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            throw new JsonException("A batch animal must be a JSON object.");
+        }
+
+        var hasAnimalIdentifier = root.TryGetProperty("animalIdentifier", out _);
+        var hasQuantity = root.TryGetProperty("quantity", out _);
+
+        return (hasAnimalIdentifier, hasQuantity) switch
+        {
+            (true, false) => root.Deserialize<IdentifiedBatchAnimal>(options)!,
+            (false, true) => root.Deserialize<MarkedBatchAnimal>(options)!,
+            _ => throw new JsonException("A batch animal must contain exactly one of 'animalIdentifier' or 'quantity'.")
+        };
+    }
+
+    public override void Write(Utf8JsonWriter writer, BatchAnimal value, JsonSerializerOptions options)
+    {
+        JsonSerializer.Serialize(writer, value, value.GetType(), options);
+    }
+}
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class IdentifiedBatchAnimal : BatchAnimal
 {
     [JsonPropertyName("animalIdentifier")]
     public required string AnimalIdentifier { get; init; }
 }
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed class MarkedBatchAnimal : BatchAnimal
 {
     [JsonPropertyName("mark")]

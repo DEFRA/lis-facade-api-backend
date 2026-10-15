@@ -6,7 +6,7 @@ namespace LisFacadeApiBackend.Facade.LIS.Movement;
 public sealed class ImportInformation : InternationalAddress
 {
     [JsonPropertyName("importDeclarationFlag")]
-    public required bool? ImportDeclarationFlag { get; init; }
+    public required bool ImportDeclarationFlag { get; init; }
 
     [JsonPropertyName("healthCertificateNumber")]
     public string? HealthCertificateNumber { get; init; }
