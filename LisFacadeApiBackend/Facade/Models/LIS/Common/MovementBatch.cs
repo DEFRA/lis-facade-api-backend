@@ -31,8 +31,17 @@ public sealed class BatchAnimalJsonConverter : JsonConverter<BatchAnimal>
             throw new JsonException("A batch animal must be a JSON object.");
         }
 
-        var hasAnimalIdentifier = root.TryGetProperty("animalIdentifier", out _);
-        var hasQuantity = root.TryGetProperty("quantity", out _);
+        var comparison = options.PropertyNameCaseInsensitive
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+        var hasAnimalIdentifier = false;
+        var hasQuantity = false;
+
+        foreach (var property in root.EnumerateObject())
+        {
+            hasAnimalIdentifier |= property.Name.Equals("animalIdentifier", comparison);
+            hasQuantity |= property.Name.Equals("quantity", comparison);
+        }
 
         return (hasAnimalIdentifier, hasQuantity) switch
         {
