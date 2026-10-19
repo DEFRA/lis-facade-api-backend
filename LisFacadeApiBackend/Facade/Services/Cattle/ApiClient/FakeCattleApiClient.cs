@@ -66,11 +66,23 @@ public sealed class FakeCattleApiClient : ICattleApiClient
                 || NormaliseCph(h.Cph).Contains(NormaliseCph(search), StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        matches = string.Equals(order, "desc", StringComparison.OrdinalIgnoreCase)
-            ? [.. matches.OrderByDescending(h => h.Cph)]
-            : [.. matches.OrderBy(h => h.Cph)];
+        var sortKey = ResolveHoldingSortKey(sort);
+        if (sortKey is null)
+        {
+            return Task.FromResult(CreateResponse(
+                HttpStatusCode.BadRequest,
+                FakeCattleApiData.BadRequestProblemDetails(
+                    "Sort must be one of: cph, name, holdingType, keeperName.",
+                    "/v1/holdings"),
+                ProblemMediaType));
+        }
 
-        var items = matches.Skip((currentPage - 1) * currentPageSize).Take(currentPageSize).ToList();
+        matches = string.Equals(order, "desc", StringComparison.OrdinalIgnoreCase)
+            ? [.. matches.OrderByDescending(sortKey, StringComparer.OrdinalIgnoreCase).ThenBy(h => h.Cph)]
+            : [.. matches.OrderBy(sortKey, StringComparer.OrdinalIgnoreCase).ThenBy(h => h.Cph)];
+
+        var offset = Math.Min((currentPage - 1L) * currentPageSize, int.MaxValue);
+        var items = matches.Skip((int)offset).Take(currentPageSize).ToList();
         var totalPages = (int)Math.Ceiling(matches.Count / (double)currentPageSize);
 
         return Task.FromResult(CreateResponse(
@@ -333,6 +345,16 @@ public sealed class FakeCattleApiClient : ICattleApiClient
         [.. _bundles.Values
             .Where(b => NormaliseCph(b.CountyParishHolding) == normalisedCph)
             .OrderBy(b => b.CreatedAt)];
+
+    private static Func<HoldingResponse, string>? ResolveHoldingSortKey(string? sort) =>
+        sort?.Trim().ToLowerInvariant() switch
+        {
+            null or "" or "cph" => h => h.Cph,
+            "name" => h => h.Name ?? string.Empty,
+            "holdingtype" => h => h.HoldingType ?? string.Empty,
+            "keepername" => h => h.KeeperName ?? string.Empty,
+            _ => null
+        };
 
     private static string NormaliseCph(params string[] segments) =>
         new(string.Concat(segments).Where(char.IsLetterOrDigit).ToArray());

@@ -28,6 +28,48 @@ public class SearchHoldingsAsyncUnitTests
     }
 
     [Theory]
+    [InlineData("name", "asc", "23/456/7890")]
+    [InlineData("NAME", "desc", "12/345/6789")]
+    [InlineData("keeperName", "asc", "12/345/6789")]
+    public async Task Sorts_by_requested_field_before_paging(string sort, string order, string expectedFirstCph)
+    {
+        var client = new FakeCattleApiClient();
+
+        using var response = await client.SearchHoldingsAsync(null, 1, 1, sort, order, CancellationToken.None);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponseOfHoldingResponse>(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(expectedFirstCph, Assert.Single(result!.Items).Cph);
+    }
+
+    [Theory]
+    [InlineData(3, int.MaxValue)]
+    [InlineData(int.MaxValue, 10)]
+    [InlineData(int.MaxValue, int.MaxValue)]
+    public async Task Returns_empty_page_when_offset_exceeds_int_range(int page, int pageSize)
+    {
+        var client = new FakeCattleApiClient();
+
+        using var response = await client.SearchHoldingsAsync(null, page, pageSize, null, null, CancellationToken.None);
+        var result = await response.Content.ReadFromJsonAsync<PaginatedResponseOfHoldingResponse>(cancellationToken: TestContext.Current.CancellationToken);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Empty(result!.Items);
+        Assert.Equal(2, result.TotalCount);
+    }
+
+    [Fact]
+    public async Task Returns_bad_request_for_unsupported_sort_field()
+    {
+        var client = new FakeCattleApiClient();
+
+        using var response = await client.SearchHoldingsAsync(null, null, null, "bogus", null, CancellationToken.None);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Theory]
     [InlineData("desc")]
     [InlineData("DESC")]
     public async Task Sorts_descending_ignoring_case(string order)
