@@ -236,17 +236,19 @@ public static class FakeCattleApiData
         };
     }
 
-    public static SubmissionValidationResult CreateValidationResult(Guid submissionId) =>
+    public static SubmissionValidationResult CreateValidationResult(BundleResponse bundle) =>
         new()
         {
-            SubmissionId = submissionId,
+            SubmissionId = bundle.Id,
             IsValid = true,
             Status = "Valid",
             ErrorCount = 0,
-            AnimalResults =
-            [
-                new() { AnimalId = Guid.NewGuid(), EarTag = "UK12345678903", IsValid = true }
-            ]
+            AnimalResults = [.. bundle.Animals.Select(a => new SubmissionAnimalValidationResult
+            {
+                AnimalId = a.Id,
+                EarTag = a.EarTag,
+                IsValid = true
+            })]
         };
 
     public static IReadOnlyDictionary<string, UserDetailsResponse> GetUsersBySubject() =>

@@ -154,7 +154,7 @@ public sealed class FakeCattleApiClient : ICattleApiClient
 
         return Task.FromResult(CreateResponse(
             HttpStatusCode.OK,
-            FakeCattleApiData.GetBundlesForHolding(NormaliseCph(county, parish, holding)),
+            FilterBundles(NormaliseCph(county, parish, holding)),
             JsonMediaType));
     }
 
@@ -167,7 +167,7 @@ public sealed class FakeCattleApiClient : ICattleApiClient
 
         return Task.FromResult(CreateResponse(
             HttpStatusCode.OK,
-            FakeCattleApiData.GetBundlesForHolding(NormaliseCph(cph)),
+            FilterBundles(NormaliseCph(cph)),
             JsonMediaType));
     }
 
@@ -205,7 +205,7 @@ public sealed class FakeCattleApiClient : ICattleApiClient
         cancellationToken.ThrowIfCancellationRequested();
 
         if (!Guid.TryParse(id, out var submissionId)
-            || !_bundles.ContainsKey(submissionId))
+            || !_bundles.TryGetValue(submissionId, out var bundle))
         {
             return Task.FromResult(CreateResponse(
                 HttpStatusCode.NotFound,
@@ -217,7 +217,7 @@ public sealed class FakeCattleApiClient : ICattleApiClient
 
         return Task.FromResult(CreateResponse(
             HttpStatusCode.OK,
-            FakeCattleApiData.CreateValidationResult(submissionId),
+            FakeCattleApiData.CreateValidationResult(bundle),
             JsonMediaType));
     }
 
@@ -328,6 +328,11 @@ public sealed class FakeCattleApiClient : ICattleApiClient
         ArgumentException.ThrowIfNullOrWhiteSpace(parish);
         ArgumentException.ThrowIfNullOrWhiteSpace(holding);
     }
+
+    private List<BundleResponse> FilterBundles(string normalisedCph) =>
+        [.. _bundles.Values
+            .Where(b => NormaliseCph(b.CountyParishHolding) == normalisedCph)
+            .OrderBy(b => b.CreatedAt)];
 
     private static string NormaliseCph(params string[] segments) =>
         new(string.Concat(segments).Where(char.IsLetterOrDigit).ToArray());

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using LisFacadeApiBackend.Facade.Cattle.Request;
 using LisFacadeApiBackend.Facade.Cattle.Response.Bundle;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 
@@ -20,6 +21,31 @@ public class GetBundlesForHoldingAsyncUnitTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
         Assert.Equal(FakeCattleApiData.SeededBundleId, Assert.Single(bundles!).Id);
+    }
+
+    [Fact]
+    public async Task Created_bundle_is_listed_with_preserved_ids()
+    {
+        var client = new FakeCattleApiClient();
+        var request = new RegistrationBundleRequest
+        {
+            ClientReference = "REF-NEW",
+            Holding = new HoldingRequest { Cph = "98/765/4321" },
+            Animals = [new AnimalRegistrationRequest { EarTag = "UK1", Sex = "Male", Breed = "Angus" }]
+        };
+
+        using var createResponse = await client.CreateRegistrationBundleAsync(request, CancellationToken.None);
+        var created = await createResponse.Content.ReadFromJsonAsync<BundleResponse>(cancellationToken: TestContext.Current.CancellationToken);
+
+        for (var i = 0; i < 2; i++)
+        {
+            using var response = await client.GetBundlesForHoldingAsync("987654321", CancellationToken.None);
+            var listed = Assert.Single((await response.Content.ReadFromJsonAsync<List<BundleResponse>>(cancellationToken: TestContext.Current.CancellationToken))!);
+
+            Assert.Equal(created!.Id, listed.Id);
+            Assert.Equal(created.CreatedAt, listed.CreatedAt);
+            Assert.Equal(Assert.Single(created.Animals).Id, Assert.Single(listed.Animals).Id);
+        }
     }
 
     [Fact]
