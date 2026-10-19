@@ -1,5 +1,6 @@
 using LisFacadeApiBackend.Facade.Endpoints;
 using LisFacadeApiBackend.Facade.Services;
+using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 using LisFacadeApiBackend.Config;
 using LisFacadeApiBackend.Utils;
 using LisFacadeApiBackend.Utils.Http;
@@ -77,10 +78,15 @@ static void ConfigureHeaderPropagation(IServiceCollection services, IConfigurati
 [ExcludeFromCodeCoverage]
 static void ConfigureHttpClients(IServiceCollection services)
 {
-    services.AddTransient<ProxyHttpMessageHandler>();
-
-    // services.AddHttpClientWithTracing<IExampleClient, ExampleClient>();
-    // services.AddHttpClientWithProxy<IExternalClient, ExternalClient>();
+    services.AddSingleton<FakeCattleApiClient>();
+    services.AddHttpClientWithTracing<CattleApiClient, CattleApiClient>();
+    
+    services.AddKeyedSingleton<ICattleApiClient>(
+        CattleApiClientKeys.Fake,
+        (sp, _) => sp.GetRequiredService<FakeCattleApiClient>());
+    services.AddKeyedTransient<ICattleApiClient>(
+        CattleApiClientKeys.Real,
+        (sp, _) => sp.GetRequiredService<CattleApiClient>());
 }
 
 [ExcludeFromCodeCoverage]
