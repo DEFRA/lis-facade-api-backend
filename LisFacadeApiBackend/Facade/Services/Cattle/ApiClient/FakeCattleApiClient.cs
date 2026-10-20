@@ -31,13 +31,13 @@ public sealed class FakeCattleApiClient : ICattleApiClient
 
         if (FakeCattleApiData.GetCattleByEarTag().TryGetValue(earTag, out var cattle))
         {
-            return Task.FromResult(CreateResponse(HttpStatusCode.OK, cattle, "application/json"));
+            return Task.FromResult(CreateResponse(HttpStatusCode.OK, cattle, JsonMediaType));
         }
 
         return Task.FromResult(CreateResponse(
             HttpStatusCode.NotFound,
             FakeCattleApiData.CattleNotFoundProblemDetails(),
-            "application/problem+json"));
+            ProblemMediaType));
     }
 
     public Task<HttpResponseMessage> SearchHoldingsAsync(
