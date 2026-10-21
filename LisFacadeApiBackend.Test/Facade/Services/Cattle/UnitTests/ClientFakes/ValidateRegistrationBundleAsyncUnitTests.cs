@@ -5,7 +5,7 @@ using LisFacadeApiBackend.Facade.Cattle.Request;
 using LisFacadeApiBackend.Facade.Cattle.Response.Cattle;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 
-namespace LisFacadeApiBackend.Test.LIS.Cattle.Services.UnitTests.Fake;
+namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.ClientFakes;
 
 public class ValidateRegistrationBundleAsyncUnitTests
 {

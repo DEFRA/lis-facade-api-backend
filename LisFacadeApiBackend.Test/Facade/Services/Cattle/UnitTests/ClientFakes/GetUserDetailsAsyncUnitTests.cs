@@ -4,7 +4,7 @@ using LisFacadeApiBackend.Facade.Cattle.Error;
 using LisFacadeApiBackend.Facade.Cattle.Response.Users;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 
-namespace LisFacadeApiBackend.Test.LIS.Cattle.Services.UnitTests.Fake;
+namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.ClientFakes;
 
 public class GetUserDetailsAsyncUnitTests
 {

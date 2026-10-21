@@ -3,7 +3,7 @@ using System.Net.Http.Json;
 using LisFacadeApiBackend.Facade.Cattle.Response.HealthCheck;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 
-namespace LisFacadeApiBackend.Test.LIS.Cattle.Services.UnitTests.Fake;
+namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.ClientFakes;
 
 public class GetDetailedHealthAsyncUnitTests
 {
