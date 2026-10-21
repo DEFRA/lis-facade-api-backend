@@ -41,13 +41,16 @@ public static class CattleEndpoints
             logger.LogWarning("Animal {Identifier} not found, returning 404", identifier);
             return TypedResults.Json
             (
-                new LisProblemDetails
+                new LisErrors
                 {
-                    Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.5",
-                    Status = StatusCodes.Status404NotFound,
-                    Title = "Not found",
-                    Detail = "The requested resource was not found"
-                }, 
+                    new LisProblemDetails
+                    {
+                        Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.5",
+                        Status = StatusCodes.Status404NotFound,
+                        Title = "Not found",
+                        Detail = "The requested resource was not found"
+                    }
+                },
                 statusCode: StatusCodes.Status404NotFound);
         }
 
