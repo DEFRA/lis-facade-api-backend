@@ -60,7 +60,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     // App services
     services.AddSingleton<IExamplePersistence, ExamplePersistence>();
-    services.AddFacadeServicesAndHandlers();
+    services.AddFacadeServices();
 }
 
 [ExcludeFromCodeCoverage]

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using LisFacadeApiBackend.Facade.LIS.Animal;
 using LisFacadeApiBackend.Facade.LIS.Error;
-using LisFacadeApiBackend.Facade.Handlers.Cattle.Animal;
+using LisFacadeApiBackend.Facade.Services.Cattle.Translators.Animal;
 
 namespace LisFacadeApiBackend.Facade.Endpoints;
 
@@ -30,12 +30,12 @@ public static class CattleEndpoints
 
     private static async Task<IResult> GetAnimalByIdentifier(
         [FromRoute] string identifier,
-        [FromServices] GetAnimalByIdentifierHandler getAnimalHandler,
+        [FromServices] GetAnimalByIdentifierTranslator translator,
         ILogger<EndpointLogCategory> logger,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("GET /animals/{Identifier} received", identifier);
-        var result = await getAnimalHandler.Handle(identifier, cancellationToken);
+        var result = await translator.Translate(identifier, cancellationToken);
         if (result is null)
         {
             logger.LogWarning("Animal {Identifier} not found, returning 404", identifier);

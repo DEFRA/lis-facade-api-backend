@@ -1,8 +1,6 @@
 namespace LisFacadeApiBackend.Facade.Services.Cattle.Translators;
 
-public interface ITranslator<in TLisRequest, out TCattleApiRequest, in TCattleApiResponse, out TLisResponse>
+public interface ITranslator<TInboundRequest, TInboundResponse>
 {
-    TCattleApiRequest ToCattleApi(TLisRequest lisRequest);
-
-    TLisResponse ToLisApi(TCattleApiResponse cattleApiResponse);
+    Task<TInboundResponse> Translate(TInboundRequest inboundRequest, CancellationToken cancellationToken);
 }
