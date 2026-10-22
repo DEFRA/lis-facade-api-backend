@@ -19,7 +19,7 @@ This document is the mapping reference for implementing the facade translation l
 
 ### Endpoint Descriptions
 
-* **GET /v1/cattle/{earTag}** - Get the cattle details - Retrieves the details the cattle using its ear tag.
+* **GET /v1/cattle/{earTag}** - Get the cattle details - Retrieves the details of the cattle using its ear tag.
 * **GET /animals/{identifier}** - Retrieves a specific animal by identifier - Retrieves the details of a single animal using its unique identifier. If the specified animal exists, the full resource is returned. If the animal does not exist, an appropriate error response is returned.
 
 ## Request Mapping
@@ -53,7 +53,7 @@ This document is the mapping reference for implementing the facade translation l
 |--------------------------|-----------|----------|----------|-----------|------------|----------|----------|----------------|----------------|-------------------|---------------------|------------------------|--------------------------|-------|
 | currentLocation.identifier | string \| null | yes | no | currentSite.identifiers[].identifier | string | no | yes | rename, structural nest change and array mapping | no | no | no | yes | yes | Nullability mismatch. |
 | currentLocation.subIdentifier | string \| null | yes | no | N/A | — | — | — | no direct equivalent | yes | no | no | no | yes | LIS site identifiers have `identifier` and identifier `type`; neither is defined as a sub-identifier. Could be retrieved from identifier field but unsure of split/trandformation necessary? Nullability mismatch.|
-| currentLocation.fullIdentifier | string \| null | yes | no | N/A | — | — | — | no confirmed equivalent | yes | no | no | no | yes | LIS site identifiers have `identifier` and identifier `type`; neither is defined as a sub-identifier. Could be retrieved from identifier field but unsure of split/trandformation necessary? Nullability mismatch. |
+| currentLocation.fullIdentifier | string \| null | yes | no | N/A | — | — | — | no confirmed equivalent | yes | no | no | no | yes | LIS site identifiers have `identifier` and identifier `type`; neither is defined as a sub-identifier. Could be retrieved from identifier field but unsure of split/transformation necessary? Nullability mismatch. |
 | currentLocation.name | string \| null | yes | no | currentSite.name | string (read-only) | no | no | rename and different nesting object fix | no | no | no | no | yes | `currentSite` and `name` are optional; `name` is not nullable when present. Nullability mismatch. |
 | currentLocation.premisesType | string \| null | yes | no | currentSite.type.type | string | no | yes | rename and structural nest change | no | no | no | no | yes | LIS describes `type.type` as a site activity type (for example, Market or Abattoir)(Not Enum); confirm equivalence to premises type. Nullability mismatch. |
 
@@ -65,7 +65,7 @@ This document is the mapping reference for implementing the facade translation l
 | registeredLocation.subIdentifier | string \| null | yes | no | N/A | — | — | — | no direct equivalent | yes | no | no | no | yes | LIS site identifiers have `identifier` and identifier `type`; neither is defined as a sub-identifier. |
 | registeredLocation.fullIdentifier | string \| null | yes | no | N/A | — | — | — | no confirmed equivalent | yes | no | no | no | yes | LIS site identifier values are an array; confirm whether one is the full identifier and how to select it. |
 | registeredLocation.name | string \| null | yes | no | registration.site.name | string (read-only) | no | no | rename and structural nest change | no | no | no | no | yes | Nullability mismatch. |
-| registeredLocation.premisesType | string \| null | yes | no | registration.site.type.type | string | no | yes | rename and structural nest change | no | no | no | no | yes | LIS describes `type.type` as a site activity type (for example, Market or Abattoir) bu this is not an Enum. Nullability mismatch. |
+| registeredLocation.premisesType | string \| null | yes | no | registration.site.type.type | string | no | yes | rename and structural nest change | no | no | no | no | yes | LIS describes `type.type` as a site activity type (for example, Market or Abattoir) but this is not an Enum. Nullability mismatch. |
 
 #### Death location
 
@@ -95,7 +95,7 @@ This document is the mapping reference for implementing the facade translation l
 | geneticDamEarTag | string \| null | yes | no | `registration.geneticDam.identifier` / `importParents.geneticDam.identifier` | string | no | yes | rename and structural nest change | no | no | no | no | yes | Nullability mismatch. Both `registration.geneticDam` and `importParents.geneticDam` are `ParentAnimal` objects; which identifier to use if both are present is unconfirmed. |
 | surrogateDamEarTag | string \| null | yes | no | `registration.birthDam.identifier` / `importParents.birthDam.identifier` | string | no | yes | rename and structural nest change | no | no | no | no | yes | The LIS `birthDam` description identifies the animal giving birth; confirm this is the source's surrogate dam. Nullability mismatch. Both `registration.birthDam` and `importParents.birthDam` are `ParentAnimal` objects; which identifier to use if both are present is unconfirmed. |
 | sireEarTag | string \| null | yes | no | `registration.sire.identifier` / `importParents.sire.identifier` | string | no | yes | rename and structural nest change | no | no | no | no | yes | Nullability mismatch. Both `registration.sire` and `importParents.sire` are `ParentAnimal` objects; which identifier to use if both are present is unconfirmed. |
-| sireName | string \| null | yes | no | `registration.sire.name` / `importParents.sire.name` | string (read-only) | no | no | rename and structural nest change | no | no | no | no | yes | Register an Anmial schema says sireName is always null because CADS does not carry it. Nullability mismatch. Both `registration.sire` and `importParents.sire` are `ParentAnimal` objects; which name to use if both are present is unconfirmed. |
+| sireName | string \| null | yes | no | `registration.sire.name` / `importParents.sire.name` | string (read-only) | no | no | rename and structural nest change | no | no | no | no | yes | Register an Animal schema says sireName is always null because CADS does not carry it. Nullability mismatch. Both `registration.sire` and `importParents.sire` are `ParentAnimal` objects; which name to use if both are present is unconfirmed. |
 
 
 #### Response structure notes
@@ -159,7 +159,7 @@ The fields below have `N/A` in the LIS field column. The tables above retain the
 | `currentLocation` | currentLocation maps to currentSite. |
 | `deathLocation` | deathLocation maps to death.site, not the carcass collection site. |
 | `registeredLocation.name` | registeredLocation.name maps to registration.site.name, not homeSite in LIS. |
-| `subIdentifier` and `fullIdentifier` | Register an Animal's currentLocation, registeredLocation and deathLocation objects all have subIdentifier and fullIdenitifer fields that don't have direct field maps so remain unmapped. Further knowledge would be required to determine if these could be derived from the LIS idenitifer field, but this could not be confirmed. |
+| `subIdentifier` and `fullIdentifier` | Register an Animal's currentLocation, registeredLocation and deathLocation objects all have subIdentifier and fullIdentifier fields that don't have direct field maps so remain unmapped. Further knowledge would be required to determine if these could be derived from the LIS identifier field, but this could not be confirmed. |
 | `premisesType` | Register an Animal's premisesType fields for current, registered and death locations are assumed to mean the same as the corresponding LIS site activity type. |
 | `registeredLocation.premisesType` | registeredLocation.premisesType from Register an Animal is assumed to map to the registration.site.type.type field in LIS |
 | `surrogateDamEarTag` | surrogateDamEarTag maps to importParents.birthDam.identifier. LIS also exposes registration.birthDam.identifier; both parent objects are ParentAnimal, but their equivalence and source precedence are unconfirmed. |
