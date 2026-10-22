@@ -4,7 +4,7 @@ using LisFacadeApiBackend.Facade.Cattle.Request;
 using LisFacadeApiBackend.Facade.Cattle.Response.Bundle;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 
-namespace LisFacadeApiBackend.Test.LIS.Cattle.Services.UnitTests.Fake;
+namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.ClientFakes;
 
 public class GetBundlesForHoldingAsyncUnitTests
 {

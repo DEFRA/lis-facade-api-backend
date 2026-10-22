@@ -6,7 +6,7 @@ using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LisFacadeApiBackend.Test.LIS.Cattle.Services.UnitTests.Fake;
+namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.ClientFakes;
 
 public class GetCattleDetailsAsyncUnitTests
 {

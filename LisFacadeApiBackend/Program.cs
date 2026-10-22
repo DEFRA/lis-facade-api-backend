@@ -1,3 +1,4 @@
+using LisFacadeApiBackend.Facade;
 using LisFacadeApiBackend.Facade.Endpoints;
 using LisFacadeApiBackend.Facade.Services;
 using LisFacadeApiBackend.Facade.Services.Cattle.ApiClient;
@@ -59,6 +60,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     // App services
     services.AddSingleton<IExamplePersistence, ExamplePersistence>();
+    services.AddFacadeServices();
 }
 
 [ExcludeFromCodeCoverage]
@@ -118,6 +120,6 @@ static void ConfigureEndpoints(WebApplication app)
 {
     app.MapHealthChecks("/health", new HealthCheckOptions());
 
-    // Remove before deploying
     app.MapExampleEndpoints();
+    app.MapCattleEndpoints();
 }
