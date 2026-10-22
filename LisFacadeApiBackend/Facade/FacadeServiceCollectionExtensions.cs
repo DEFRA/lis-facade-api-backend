@@ -1,4 +1,6 @@
+using LisFacadeApiBackend.Facade.LIS.Animal;
 using LisFacadeApiBackend.Facade.Services.Cattle.EndpointServices;
+using LisFacadeApiBackend.Facade.Services.Cattle.Translators;
 using LisFacadeApiBackend.Facade.Services.Cattle.Translators.Animal;
 
 namespace LisFacadeApiBackend.Facade;
@@ -15,7 +17,7 @@ public static class FacadeServiceCollectionExtensions
 
     public static IServiceCollection AddTranslators(this IServiceCollection services)
     {
-        services.AddTransient<GetAnimalByIdentifierTranslator>();
+        services.AddTransient<ITranslator<string, AnimalRecordDetails?>, GetAnimalByIdentifierTranslator>();
 
         return services;
     }

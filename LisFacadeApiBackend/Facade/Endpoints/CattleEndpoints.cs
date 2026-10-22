@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using LisFacadeApiBackend.Facade.LIS.Animal;
 using LisFacadeApiBackend.Facade.LIS.Error;
-using LisFacadeApiBackend.Facade.Services.Cattle.Translators.Animal;
+using LisFacadeApiBackend.Facade.Services.Cattle.Translators;
 
 namespace LisFacadeApiBackend.Facade.Endpoints;
 
@@ -30,7 +30,7 @@ public static class CattleEndpoints
 
     private static async Task<IResult> GetAnimalByIdentifier(
         [FromRoute] string identifier,
-        [FromServices] GetAnimalByIdentifierTranslator translator,
+        [FromServices] ITranslator<string, AnimalRecordDetails?> translator,
         ILogger<EndpointLogCategory> logger,
         CancellationToken cancellationToken)
     {
