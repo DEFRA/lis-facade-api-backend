@@ -19,7 +19,7 @@ This document is the mapping reference for implementing the facade translation l
 
 ### Endpoint Descriptions
 
-* **GET /v1/cattle/{earTag}** - Get the cattle details - Retrieves the details of the cattle for the given county, parish and holding number
+* **GET /v1/cattle/{earTag}** - Get the cattle details - Retrieves the details the cattle using its ear tag.
 * **GET /animals/{identifier}** - Retrieves a specific animal by identifier - Retrieves the details of a single animal using its unique identifier. If the specified animal exists, the full resource is returned. If the animal does not exist, an appropriate error response is returned.
 
 ## Request Mapping
@@ -40,7 +40,7 @@ This document is the mapping reference for implementing the facade translation l
 
 | Register an Animal field | Data type | Nullable | Required | LIS field | Data type | Nullable | Required | Transformation | Missing fields | Datatype mismatch | Enum/value mismatch | Cardinality differences | Possible breaking change | Notes |
 |--------------------------|-----------|----------|----------|-----------|------------|----------|----------|----------------|----------------|-------------------|---------------------|------------------------|--------------------------|-------|
-| earTag | string | no | no | animal.identifier | string | no | yes | rename and structural nest change | no | no | no | no | no | Non-null field |
+| earTag | string | no | no | animal.identifier | string | no | yes | rename and structural nest change | no | no | no | no | yes | Required-field mismatch: Register an Animal may omit earTag, while LIS requires animal.identifier. Agree how to supply the identifier when earTag is absent, including whether the request identifier is a valid fallback. Non-null field | |
 | species | string \| null | yes | no | animal.species | string (enum) | no | yes | structural nest change, string/enum change | no | no | yes | no | yes | LIS enum is `bison`, `buffalo`, `cattle`, `deer`, `goats`, `sheep`; Register an animal allows any string or null. Nullability mismatch. |
 | sex | string \| null | yes | no | animal.sex | string (enum) | no | yes | structural nest change, string/enum change | no | no | yes | no | yes | LIS enum is `female`, `male`; Register an Animal allows any string or null. Nullability mismatch. |
 | dateBirth | string(date) \| null | yes | no | birth.date | string(date) | no | no | rename and structural nest change | no | no | no | no | yes | Nullability mismatch.|
@@ -107,7 +107,7 @@ This document is the mapping reference for implementing the facade translation l
 
 ### 401 Unauthorized / 403 Forbidden status mapping unconfirmed
 
-* Note: 401 Response from Register an Animal mapped to 403 in LIS as no corresponding 401 or 403 respectively. LIS 403 has no confirmed status mapping to Register an Animal. Further information is needed before deciding whether it should become 401 or require different handling.
+* Note: Register an Animal declares `401 Unauthorized`, while LIS declares `403 Forbidden`; no translation between these statuses is confirmed. A downstream 401 may indicate rejection of the facade's API key, so it must not automatically become a consumer-facing 403. Agree the appropriate LIS error handling. Below shows these two statuses mapped but this should be confirmed.
 
 | Register an Animal field | Data type | Nullable | Required | LIS field | Data type | Nullable | Required | Transformation | Missing fields | Datatype mismatch | Enum/value mismatch | Cardinality differences | Breaking change | Notes |
 |--------------------------|-----------|----------|----------|-----------|------------|----------|-----------|----------------|----------------|-------------------|---------------------|------------------------|-----------------|-------|
@@ -177,7 +177,7 @@ These are potential breaks if the facade does not handle the differences below. 
 | Category | Potential breaking change |
 |----------|---------------------------|
 | Nullability | Register an Animal to LIS: null values cannot be copied into non-null LIS fields, such as `sex` to `animal.sex` or `dateRegistered` to `registration.date`. LIS to Register an Animal: non-null values can populate the corresponding nullable fields. Missing optional LIS values still need an agreed null or omission rule. |
-| Required fields | Register an Animal to LIS: an optional field may be absent even though LIS requires its equivalent, such as `species` to `animal.species`. A nested LIS field may only be required when its parent object is present. In either direction, all required destination fields must be supplied. |
+| Required fields | Register an Animal to LIS: an optional field may be absent even though LIS requires its equivalent, such as `earTag` to `animal.identifier` or `species` to `animal.species`. A nested LIS field may only be required when its parent object is present. In either direction, all required destination fields must be supplied. |
 | Datatype | Register an Animal `status` may be an integer, an integer-formatted string, or null; LIS `status` must be an integer between 100 and 599. Copying a string or null unchanged would not match the LIS contract. |
 | Allowed values | Register an Animal to LIS: `species`, `sex` and `state` allow strings outside the enums accepted by `animal.species`, `animal.sex` and `animal.state`. These need validation or an agreed translation. LIS to Register an Animal: the enum strings fit the string datatype, but their meaning still needs to match caller expectations. |
 | Missing data | `dateOnCph`, `breed`, `restrictionStatus`, `damType`, location `subIdentifier`/`fullIdentifier` fields, and error `instance` have no confirmed LIS mapping. Callers may no longer receive values they previously relied on. |
@@ -195,6 +195,7 @@ These are potential breaks if the facade does not handle the differences below. 
 | `sex` | Map sex to animal.sex using female or male. Confirm any spelling or case conversions and agree how to handle missing, null or unsupported values, as animal.sex is required. |
 | `species` | Map species to animal.species using bison, buffalo, cattle, deer, goats or sheep. Confirm any spelling or case conversions and agree how to handle missing, null or unsupported values, as animal.species is required. |
 | Missing values | Where Register an Animal cannot supply a value, return null or omit the field only where the LIS schema allows it. Agree how to handle missing required LIS values. |
+| `earTag` | Agree how to provide the required `animal.identifier` when `earTag` is absent; do not assume the request identifier is a valid fallback. |
 | `sireName` | Where sireName is null or missing, omit importParents.sire.name. If sireName becomes available, map it to importParents.sire.name. Only include importParents.sire when its required identifier can also be supplied from sireEarTag. |
 | `403` / `401` | Agree how the facade handles a downstream Register an Animal 401. Do not automatically convert it to LIS 403: it may mean the facade’s x-api-key was rejected rather than the consumer lacking permission. Handle consumer authentication separately and document the agreed error response in the LIS contract. |
 | Error response body | Recommendation to convert one Register an Animal ProblemDetails object into a LIS Errors array containing one ProblemDetails object. Agree how to handle missing or null values for the required LIS fields, ensure status matches the facade’s HTTP response status, and use application/json. |
