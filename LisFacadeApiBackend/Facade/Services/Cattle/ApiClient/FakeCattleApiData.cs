@@ -26,7 +26,15 @@ public static class FakeCattleApiData
                 BreedCode = "HOL",
                 BreedName = "Holstein Friesian",
                 State = "Alive",
-                RestrictionStatus = "None"
+                RestrictionStatus = "None",
+                CurrentLocation = new() { Identifier = "12/345/6789", SubIdentifier = "01", FullIdentifier = "12/345/6789/01", Name = "Fake Farm", PremisesType = "Farm" },
+                RegisteredLocation = new() { Identifier = "12/345/6789", SubIdentifier = "01", FullIdentifier = "12/345/6789/01", Name = "Fake Farm", PremisesType = "Farm" },
+                DeathLocation = new() { Identifier = "98/765/4321", SubIdentifier = "01", FullIdentifier = "98/765/4321/01", Name = "Fake Abattoir", PremisesType = "Abattoir" },
+                DamType = "Genetic",
+                GeneticDamEarTag = "UK12345678800",
+                SurrogateDamEarTag = "UK12345678801",
+                SireEarTag = "UK12345678700",
+                SireName = "Fake Sire One"
             },
             ["UK12345678902"] = new()
             {
@@ -40,7 +48,15 @@ public static class FakeCattleApiData
                 BreedCode = "ANG",
                 BreedName = "Aberdeen Angus",
                 State = "Alive",
-                RestrictionStatus = "None"
+                RestrictionStatus = "None",
+                CurrentLocation = new() { Identifier = "23/456/7890", SubIdentifier = "02", FullIdentifier = "23/456/7890/02", Name = "Example Holdings", PremisesType = "Farm" },
+                RegisteredLocation = new() { Identifier = "23/456/7890", SubIdentifier = "02", FullIdentifier = "23/456/7890/02", Name = "Example Holdings", PremisesType = "Farm" },
+                DeathLocation = new() { Identifier = "98/765/4321", SubIdentifier = "01", FullIdentifier = "98/765/4321/01", Name = "Fake Abattoir", PremisesType = "Abattoir" },
+                DamType = "Surrogate",
+                GeneticDamEarTag = "UK12345678810",
+                SurrogateDamEarTag = "UK12345678811",
+                SireEarTag = "UK12345678710",
+                SireName = "Fake Sire Two"
             }
         };
 

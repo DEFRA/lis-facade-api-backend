@@ -7,6 +7,7 @@ using LisFacadeApiBackend.Utils;
 using LisFacadeApiBackend.Utils.Http;
 using LisFacadeApiBackend.Utils.Mongo;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using LisFacadeApiBackend.Utils.Logging;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MongoDB.Driver;
@@ -49,6 +50,8 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     services.AddProblemDetails();
     services.AddValidation();
+    services.ConfigureHttpJsonOptions(options =>
+        options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
     services.AddHttpContextAccessor();
 

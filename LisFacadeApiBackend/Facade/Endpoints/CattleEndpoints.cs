@@ -17,7 +17,7 @@ public static class CattleEndpoints
 
         group.MapGet("/{identifier}", GetAnimalByIdentifier)
             .WithName("GetByIdentifier")
-            .Produces<AnimalRecordDetails>(StatusCodes.Status200OK)
+            .Produces<Animal>(StatusCodes.Status200OK)
             .Produces<LisErrors>(StatusCodes.Status403Forbidden)
             .Produces<LisErrors>(StatusCodes.Status404NotFound)
             .Produces<LisErrors>(StatusCodes.Status500InternalServerError)
@@ -30,28 +30,37 @@ public static class CattleEndpoints
 
     private static async Task<IResult> GetAnimalByIdentifier(
         [FromRoute] string identifier,
-        [FromServices] ITranslator<string, AnimalRecordDetails?> translator,
+        [FromServices] ITranslator<string, Animal?> translator,
         ILogger<EndpointLogCategory> logger,
         CancellationToken cancellationToken)
     {
         logger.LogInformation("GET /animals/{Identifier} received", identifier);
-        var result = await translator.Translate(identifier, cancellationToken);
+        if (string.IsNullOrWhiteSpace(identifier))
+        {
+            logger.LogWarning("Blank animal identifier received, returning 404");
+            return LisErrorResults.NotFound();
+        }
+
+        Animal? result;
+        try
+        {
+            result = await translator.Translate(identifier, cancellationToken);
+        }
+        catch (HttpRequestException ex)
+        {
+            logger.LogError(ex, "Upstream failure for {Identifier}", identifier);
+            return LisErrorResults.FromUpstream(ex.StatusCode);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            logger.LogError(ex, "Unexpected error for {Identifier}", identifier);
+            return LisErrorResults.ServerError();
+        }
+
         if (result is null)
         {
             logger.LogWarning("Animal {Identifier} not found, returning 404", identifier);
-            return TypedResults.Json
-            (
-                new LisErrors
-                {
-                    new LisProblemDetails
-                    {
-                        Type = "https://datatracker.ietf.org/doc/html/rfc9110#section-15.5.5",
-                        Status = StatusCodes.Status404NotFound,
-                        Title = "Not found",
-                        Detail = "The requested resource was not found"
-                    }
-                },
-                statusCode: StatusCodes.Status404NotFound);
+            return LisErrorResults.NotFound();
         }
 
         logger.LogInformation("Returning animal with identifier {Identifier}", identifier);

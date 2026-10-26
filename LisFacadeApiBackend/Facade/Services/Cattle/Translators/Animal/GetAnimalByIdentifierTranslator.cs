@@ -1,39 +1,108 @@
+using LisFacadeApiBackend.Facade.Cattle.Response.Cattle;
+using LisFacadeApiBackend.Facade.LIS.Common;
 using LisFacadeApiBackend.Facade.LIS.Animal;
 using LisFacadeApiBackend.Facade.LIS.Enums;
 using LisFacadeApiBackend.Facade.Services.Cattle.EndpointServices;
+using AnimalModel = LisFacadeApiBackend.Facade.LIS.Animal.Animal;
 
 namespace LisFacadeApiBackend.Facade.Services.Cattle.Translators.Animal;
 
 public class GetAnimalByIdentifierTranslator(
     GetAnimalByIdentifierService animalService,
     ILogger<GetAnimalByIdentifierTranslator> logger)
-    : ITranslator<string, AnimalRecordDetails?>
+    : ITranslator<string, AnimalModel?>
 {
-    public async Task<AnimalRecordDetails?> Translate(string inboundRequest, CancellationToken cancellationToken)
+    public async Task<AnimalModel?> Translate(string inboundRequest, CancellationToken cancellationToken)
     {
-        /* 
-        TODO: Translate the request type
-        Call the animal service with the translated request
-        Translate response to response type and return
-        */
-
-        // Temporary hardcoded data until the cattle response mapping is implemented
-        var placeholderResponse = new AnimalRecordDetails
+        var cattleIdentifier = TranslateRequest(inboundRequest);
+        var cattle = await animalService.GetAnimalByIdentifierAsync(cattleIdentifier, cancellationToken);
+        if (cattle is null)
         {
-            Identifier = "UK12345678901",
-            Species = Species.Cattle,
-            Name = "Test Animal",
-            Sex = Sex.Female,
-            Genotype = "Holstein Friesian",
-            OriginalIdentifier = "UK12345678901",
-            ProductionType = ProductionType.Dairy,
-            State = AnimalState.Registered
+            logger.LogDebug("No cattle found for identifier {CattleIdentifier}", cattleIdentifier);
+            return null;
+        }
+
+        return TranslateResponse(cattle);
+    }
+
+    public string TranslateRequest(string identifier) => identifier;
+
+    public AnimalModel TranslateResponse(CattleDetailsResponse cattle)
+    {
+        var species = EnumParser.ParseOrNull<Species>(cattle.Species);
+        var sex = EnumParser.ParseOrNull<Sex>(cattle.Sex);
+        var state = EnumParser.ParseOrNull<AnimalState>(cattle.State);
+
+        return new AnimalModel
+        {
+            AnimalDetails = new AnimalRecordDetails
+            {
+                Identifier = cattle.EarTag,
+                Species = species ?? default,
+                Sex = sex ?? default,
+                State = state,
+            },
+            Breed = cattle.BreedCode is null && cattle.BreedName is null
+                ? null
+                : new Breed
+                {
+                    Code = cattle.BreedCode,
+                    Name = cattle.BreedName
+                },
+            CurrentSite = cattle.CurrentLocation is null ? null : ToSite(cattle.CurrentLocation),
+            ImportParents = ToImportParents(cattle),
+            Death = cattle.DeathLocation is null
+                ? null
+                : new AnimalDeath
+                {
+                    Site = ToSite(cattle.DeathLocation)
+                },
+            Registration = new AnimalRegistration
+            {
+                BirthDam = ToParent(cattle.SurrogateDamEarTag),
+                GeneticDam = ToParent(cattle.GeneticDamEarTag),
+                Sire = ToParent(cattle.SireEarTag, cattle.SireName),
+                Site = ToSite(cattle.RegisteredLocation),
+                Date = cattle.DateRegistered ?? default,
+                Category = default
+            }
+        };
+    }
+
+    private static Site ToSite(CattleLocationResponse? location) =>
+        new()
+        {
+            Type = new SiteType
+            {
+                Type = location?.PremisesType ?? string.Empty,
+                Description = string.Empty
+            },
+            Identifiers = location?.Identifier is { } identifier
+                ? [new SiteIdentifier
+                {
+                    Identifier = identifier,
+                    Type = string.Empty
+                }]
+                : [],
+            Name = location?.Name
         };
 
-        await animalService.GetAnimalByIdentifierAsync("UK12345678901", cancellationToken);
+    private static ImportParents? ToImportParents(CattleDetailsResponse cattle) =>
+        cattle.SireEarTag is null && cattle.GeneticDamEarTag is null && cattle.SurrogateDamEarTag is null
+            ? null
+            : new ImportParents
+            {
+                Sire = ToParent(cattle.SireEarTag, cattle.SireName),
+                GeneticDam = ToParent(cattle.GeneticDamEarTag),
+                BirthDam = ToParent(cattle.SurrogateDamEarTag)
+            };
 
-        logger.LogInformation("Returning placeholder response for cattle with identifier {CattleIdentifier}, " +
-            "this will be replaced with actual data once the translation is completed", "UK12345678901");
-        return placeholderResponse;
-    }
+    private static ParentAnimal? ToParent(string? identifier, string? name = null) =>
+        identifier is null
+            ? null
+            : new ParentAnimal
+            {
+                Identifier = identifier,
+                Name = name
+            };
 }
