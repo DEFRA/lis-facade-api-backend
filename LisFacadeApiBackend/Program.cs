@@ -60,6 +60,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
     ConfigureMongo(services, configuration);
 
     services.AddHealthChecks();
+    services.AddOpenApi();
 
     // App services
     services.AddSingleton<IExamplePersistence, ExamplePersistence>();
@@ -122,6 +123,11 @@ static void ConfigureMiddleware(WebApplication app)
 static void ConfigureEndpoints(WebApplication app)
 {
     app.MapHealthChecks("/health", new HealthCheckOptions());
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    });
 
     app.MapExampleEndpoints();
     app.MapCattleEndpoints();
