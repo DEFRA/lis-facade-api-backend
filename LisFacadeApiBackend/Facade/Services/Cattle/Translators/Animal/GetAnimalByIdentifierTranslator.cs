@@ -29,8 +29,15 @@ public class GetAnimalByIdentifierTranslator(
 
     public AnimalModel TranslateResponse(CattleDetailsResponse cattle)
     {
-        var species = EnumParser.ParseOrNull<Species>(cattle.Species);
-        var sex = EnumParser.ParseOrNull<Sex>(cattle.Sex);
+        var species = EnumParser.ParseOrNull<Species>(cattle.Species)
+            ?? throw new InvalidOperationException(
+                "Upstream cattle response has missing or unsupported species.");
+        var sex = EnumParser.ParseOrNull<Sex>(cattle.Sex)
+            ?? throw new InvalidOperationException(
+                "Upstream cattle response has missing or unsupported sex.");
+        var registrationDate = cattle.DateRegistered
+            ?? throw new InvalidOperationException(
+                "Upstream cattle response has missing registration date.");
         var state = EnumParser.ParseOrNull<AnimalState>(cattle.State);
 
         return new AnimalModel
@@ -38,8 +45,8 @@ public class GetAnimalByIdentifierTranslator(
             AnimalDetails = new AnimalRecordDetails
             {
                 Identifier = cattle.EarTag,
-                Species = species ?? default,
-                Sex = sex ?? default,
+                Species = species,
+                Sex = sex,
                 State = state,
             },
             Breed = cattle.BreedCode is null && cattle.BreedName is null
@@ -63,7 +70,7 @@ public class GetAnimalByIdentifierTranslator(
                 GeneticDam = ToParent(cattle.GeneticDamEarTag),
                 Sire = ToParent(cattle.SireEarTag, cattle.SireName),
                 Site = ToSite(cattle.RegisteredLocation),
-                Date = cattle.DateRegistered ?? default,
+                Date = registrationDate,
                 Category = default
             }
         };

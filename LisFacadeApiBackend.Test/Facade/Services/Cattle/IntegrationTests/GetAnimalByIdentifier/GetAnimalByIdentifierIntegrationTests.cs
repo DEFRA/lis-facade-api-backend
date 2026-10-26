@@ -157,7 +157,8 @@ public class GetAnimalByIdentifierIntegrationTests(WebApplicationFactory<Program
         {
             EarTag = "UK222222222222",
             Species = "Cattle",
-            Sex = "Male"
+            Sex = "Male",
+            DateRegistered = new DateOnly(2024, 3, 15)
         }));
         await using var factory = FactoryWithUpstream(upstream);
         using var client = factory.CreateClient();
@@ -168,6 +169,7 @@ public class GetAnimalByIdentifierIntegrationTests(WebApplicationFactory<Program
         var animal = await response.Content.ReadFromJsonAsync<Animal>(cancellationToken);
         Assert.NotNull(animal);
         Assert.Equal("UK222222222222", animal.AnimalDetails.Identifier);
+        Assert.Equal(new DateOnly(2024, 3, 15), animal.Registration.Date);
         Assert.Null(animal.Breed);
         Assert.Null(animal.CurrentSite);
         Assert.Null(animal.Death);
@@ -208,8 +210,56 @@ public class GetAnimalByIdentifierIntegrationTests(WebApplicationFactory<Program
     }
 
     [Theory]
+    [InlineData("\"sex\":\"female\"")]
+    [InlineData("\"species\":\"cattle\"")]
+    [InlineData("\"species\":null,\"sex\":\"female\"")]
+    [InlineData("\"species\":\"cattle\",\"sex\":null")]
+    [InlineData("\"species\":\"\",\"sex\":\"female\"")]
+    [InlineData("\"species\":\"cattle\",\"sex\":\"\"")]
+    [InlineData("\"species\":\"  \",\"sex\":\"female\"")]
+    [InlineData("\"species\":\"cattle\",\"sex\":\"  \"")]
+    [InlineData("\"species\":\"unknown\",\"sex\":\"female\"")]
+    [InlineData("\"species\":\"cattle\",\"sex\":\"unknown\"")]
+    public async Task Get_returns_500_lis_error_when_upstream_required_enum_is_missing_or_unsupported(
+        string enumProperties)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var upstream = UpstreamReturning(RawJson(
+            $$"""{"earTag":"{{KnownIdentifier}}","dateRegistered":"2024-03-15",{{enumProperties}}}"""));
+        await using var factory = FactoryWithUpstream(upstream);
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync($"/animals/{KnownIdentifier}", cancellationToken);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        await AssertLisError(response, HttpStatusCode.InternalServerError, "Server Error",
+            "The server encountered an unexpected error", "section-15.6.1", cancellationToken);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(",\"dateRegistered\":null")]
+    public async Task Get_returns_500_lis_error_when_upstream_registration_date_is_missing_or_null(
+        string dateProperty)
+    {
+        var cancellationToken = TestContext.Current.CancellationToken;
+        var upstream = UpstreamReturning(RawJson(
+            $$"""{"earTag":"{{KnownIdentifier}}","species":"cattle","sex":"female"{{dateProperty}}}"""));
+        await using var factory = FactoryWithUpstream(upstream);
+        using var client = factory.CreateClient();
+
+        var response = await client.GetAsync($"/animals/{KnownIdentifier}", cancellationToken);
+
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        await AssertLisError(response, HttpStatusCode.InternalServerError, "Server Error",
+            "The server encountered an unexpected error", "section-15.6.1", cancellationToken);
+    }
+
+    [Theory]
     [InlineData(HttpStatusCode.Forbidden, HttpStatusCode.Forbidden, "Forbidden", "The resource could not be returned as the requestor is not authorized", "section-15.5.4")]
-    [InlineData(HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden, "Forbidden", "The resource could not be returned as the requestor is not authorized", "section-15.5.4")]
+    [InlineData(HttpStatusCode.Unauthorized, HttpStatusCode.InternalServerError, "Server Error", "The server encountered an unexpected error", "section-15.6.1")]
     [InlineData(HttpStatusCode.ServiceUnavailable, HttpStatusCode.ServiceUnavailable, "Service Unavailable", "The service is currently unavailable", "section-15.6.4")]
     [InlineData(HttpStatusCode.BadGateway, HttpStatusCode.ServiceUnavailable, "Service Unavailable", "The service is currently unavailable", "section-15.6.4")]
     [InlineData(HttpStatusCode.InternalServerError, HttpStatusCode.InternalServerError, "Server Error", "The server encountered an unexpected error", "section-15.6.1")]

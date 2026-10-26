@@ -28,7 +28,7 @@ public static class LisErrorResults
     public static IResult FromUpstream(HttpStatusCode? status) => status switch
     {
         HttpStatusCode.NotFound => NotFound(),
-        HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden => Forbidden(),
+        HttpStatusCode.Forbidden => Forbidden(),
         HttpStatusCode.ServiceUnavailable or HttpStatusCode.BadGateway or HttpStatusCode.GatewayTimeout => ServiceUnavailable(),
         _ => ServerError()
     };

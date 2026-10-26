@@ -13,6 +13,9 @@ namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.Translators;
 public class GetAnimalByIdentifierTranslatorUnitTests
 {
     private const string Identifier = "UK12345678901";
+    private const string DefaultSpecies = "cattle";
+    private const string DefaultSex = "female";
+    private static readonly DateOnly RegistrationDate = new(2024, 3, 15);
 
     private readonly ICattleApiClient _client = Substitute.For<ICattleApiClient>();
     private readonly GetAnimalByIdentifierTranslator _translator;
@@ -26,12 +29,12 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     private static CattleDetailsResponse FullResponse() => new()
     {
         EarTag = Identifier,
-        Species = "cattle",
-        Sex = "female",
+        Species = DefaultSpecies,
+        Sex = DefaultSex,
         State = "registered",
         BreedCode = "AA",
         BreedName = "Aberdeen Angus",
-        DateRegistered = new DateOnly(2024, 3, 15),
+        DateRegistered = RegistrationDate,
         CurrentLocation = new CattleLocationResponse { Identifier = "11/111/1111", Name = "Current Farm", PremisesType = "AH" },
         RegisteredLocation = new CattleLocationResponse { Identifier = "22/222/2222", Name = "Reg Farm", PremisesType = "AB" },
         DeathLocation = new CattleLocationResponse { Identifier = "33/333/3333", Name = "Abattoir", PremisesType = "SL" },
@@ -98,13 +101,76 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     }
 
     [Theory]
+    [InlineData("bison", Species.Bison)]
+    [InlineData("buffalo", Species.Buffalo)]
+    [InlineData("cattle", Species.Cattle)]
+    [InlineData("deer", Species.Deer)]
+    [InlineData("goats", Species.Goats)]
+    [InlineData("sheep", Species.Sheep)]
+    [InlineData("CATTLE", Species.Cattle)]
+    [InlineData(" cattle ", Species.Cattle)]
+    public void TranslateResponse_parses_supported_species(string value, Species expected)
+    {
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = value, Sex = DefaultSex, DateRegistered = RegistrationDate });
+
+        Assert.Equal(expected, result.AnimalDetails.Species);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" \t ")]
+    [InlineData("unknown")]
+    [InlineData("0")]
+    [InlineData("999")]
+    public void TranslateResponse_rejects_missing_or_unsupported_species(string? value)
+    {
+        var cattle = new CattleDetailsResponse { EarTag = Identifier, Species = value, Sex = DefaultSex, DateRegistered = RegistrationDate };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => _translator.TranslateResponse(cattle));
+
+        Assert.Equal("Upstream cattle response has missing or unsupported species.", ex.Message);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" \t ")]
+    [InlineData("unknown")]
+    [InlineData("0")]
+    [InlineData("999")]
+    public void TranslateResponse_rejects_missing_or_unsupported_sex(string? value)
+    {
+        var cattle = new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = value, DateRegistered = RegistrationDate };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => _translator.TranslateResponse(cattle));
+
+        Assert.Equal("Upstream cattle response has missing or unsupported sex.", ex.Message);
+    }
+
+    [Theory]
     [InlineData("MALE", Sex.Male)]
     [InlineData(" female ", Sex.Female)]
     public void TranslateResponse_parses_sex_case_insensitively(string value, Sex expected)
     {
-        var result = _translator.TranslateResponse(new CattleDetailsResponse { EarTag = Identifier, Sex = value });
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = value, DateRegistered = RegistrationDate });
 
         Assert.Equal(expected, result.AnimalDetails.Sex);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" \t ")]
+    [InlineData("unknown")]
+    public void TranslateResponse_keeps_missing_or_unsupported_optional_state_null(string? value)
+    {
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate, State = value });
+
+        Assert.Null(result.AnimalDetails.State);
     }
 
     [Fact]
@@ -123,7 +189,7 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     public void TranslateResponse_maps_breed_when_only_one_part_present(string? code, string? name)
     {
         var result = _translator.TranslateResponse(
-            new CattleDetailsResponse { EarTag = Identifier, BreedCode = code, BreedName = name });
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate, BreedCode = code, BreedName = name });
 
         Assert.NotNull(result.Breed);
         Assert.Equal(code, result.Breed.Code);
@@ -133,7 +199,8 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     [Fact]
     public void TranslateResponse_breed_is_null_when_code_and_name_missing()
     {
-        var result = _translator.TranslateResponse(new CattleDetailsResponse { EarTag = Identifier, Breed = "Angus" });
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate, Breed = "Angus" });
 
         Assert.Null(result.Breed);
     }
@@ -155,7 +222,8 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     [Fact]
     public void TranslateResponse_current_site_is_null_when_no_current_location()
     {
-        var result = _translator.TranslateResponse(new CattleDetailsResponse { EarTag = Identifier });
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate });
 
         Assert.Null(result.CurrentSite);
     }
@@ -166,6 +234,9 @@ public class GetAnimalByIdentifierTranslatorUnitTests
         var result = _translator.TranslateResponse(new CattleDetailsResponse
         {
             EarTag = Identifier,
+            Species = DefaultSpecies,
+            Sex = DefaultSex,
+            DateRegistered = RegistrationDate,
             CurrentLocation = new CattleLocationResponse { Name = "No Id", PremisesType = null }
         });
 
@@ -190,7 +261,8 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     [Fact]
     public void TranslateResponse_death_is_null_when_no_death_location()
     {
-        var result = _translator.TranslateResponse(new CattleDetailsResponse { EarTag = Identifier });
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate });
 
         Assert.Null(result.Death);
     }
@@ -211,7 +283,8 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     [Fact]
     public void TranslateResponse_import_parents_is_null_when_no_parents()
     {
-        var result = _translator.TranslateResponse(new CattleDetailsResponse { EarTag = Identifier });
+        var result = _translator.TranslateResponse(
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate });
 
         Assert.Null(result.ImportParents);
     }
@@ -220,7 +293,7 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     public void TranslateResponse_import_parents_present_when_only_one_parent_known()
     {
         var result = _translator.TranslateResponse(
-            new CattleDetailsResponse { EarTag = Identifier, GeneticDamEarTag = "UK-GDAM" });
+            new CattleDetailsResponse { EarTag = Identifier, Species = DefaultSpecies, Sex = DefaultSex, DateRegistered = RegistrationDate, GeneticDamEarTag = "UK-GDAM" });
 
         Assert.NotNull(result.ImportParents);
         Assert.Null(result.ImportParents.Sire);
@@ -229,11 +302,27 @@ public class GetAnimalByIdentifierTranslatorUnitTests
     }
 
     [Fact]
+    public void TranslateResponse_rejects_missing_registration_date()
+    {
+        var cattle = new CattleDetailsResponse
+        {
+            EarTag = Identifier,
+            Species = DefaultSpecies,
+            Sex = DefaultSex,
+            DateRegistered = null
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => _translator.TranslateResponse(cattle));
+
+        Assert.Equal("Upstream cattle response has missing registration date.", ex.Message);
+    }
+
+    [Fact]
     public void TranslateResponse_maps_registration()
     {
         var result = _translator.TranslateResponse(FullResponse());
 
-        Assert.Equal(new DateOnly(2024, 3, 15), result.Registration.Date);
+        Assert.Equal(RegistrationDate, result.Registration.Date);
         Assert.Equal("UK-SDAM", result.Registration.BirthDam?.Identifier);
         Assert.Equal("UK-GDAM", result.Registration.GeneticDam?.Identifier);
         Assert.Equal("UK-SIRE", result.Registration.Sire?.Identifier);
