@@ -12,7 +12,8 @@ public static class ExampleEndpoints
     public static RouteGroupBuilder MapExampleEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/example")
-            .WithTags("Example");
+            .WithTags("Example")
+            .ExcludeFromDescription();
 
         group.MapPost(string.Empty, Create);
         group.MapGet(string.Empty, GetAll);

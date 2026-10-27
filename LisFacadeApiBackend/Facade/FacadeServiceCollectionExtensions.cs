@@ -17,7 +17,7 @@ public static class FacadeServiceCollectionExtensions
 
     public static IServiceCollection AddTranslators(this IServiceCollection services)
     {
-        services.AddTransient<ITranslator<string, AnimalRecordDetails?>, GetAnimalByIdentifierTranslator>();
+        services.AddTransient<ITranslator<string, Animal?>, GetAnimalByIdentifierTranslator>();
 
         return services;
     }

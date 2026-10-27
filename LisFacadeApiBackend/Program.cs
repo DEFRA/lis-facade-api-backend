@@ -7,6 +7,7 @@ using LisFacadeApiBackend.Utils;
 using LisFacadeApiBackend.Utils.Http;
 using LisFacadeApiBackend.Utils.Mongo;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.Json.Serialization;
 using LisFacadeApiBackend.Utils.Logging;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using MongoDB.Driver;
@@ -49,6 +50,8 @@ static void ConfigureServices(WebApplicationBuilder builder)
 
     services.AddProblemDetails();
     services.AddValidation();
+    services.ConfigureHttpJsonOptions(options =>
+        options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull);
 
     services.AddHttpContextAccessor();
 
@@ -57,6 +60,7 @@ static void ConfigureServices(WebApplicationBuilder builder)
     ConfigureMongo(services, configuration);
 
     services.AddHealthChecks();
+    services.AddOpenApi();
 
     // App services
     services.AddSingleton<IExamplePersistence, ExamplePersistence>();
@@ -119,6 +123,11 @@ static void ConfigureMiddleware(WebApplication app)
 static void ConfigureEndpoints(WebApplication app)
 {
     app.MapHealthChecks("/health", new HealthCheckOptions());
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    });
 
     app.MapExampleEndpoints();
     app.MapCattleEndpoints();

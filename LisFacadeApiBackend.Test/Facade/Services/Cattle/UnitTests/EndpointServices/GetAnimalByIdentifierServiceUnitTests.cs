@@ -8,14 +8,14 @@ using NSubstitute;
 
 namespace LisFacadeApiBackend.Test.Facade.Services.Cattle.UnitTests.EndpointServices;
 
-public class GetAnimalByIdentifierServiceTests
+public class GetAnimalByIdentifierServiceUnitTests
 {
     private const string Identifier = "UK12345678901";
 
     private readonly ICattleApiClient _client = Substitute.For<ICattleApiClient>();
     private readonly GetAnimalByIdentifierService _service;
 
-    public GetAnimalByIdentifierServiceTests()
+    public GetAnimalByIdentifierServiceUnitTests()
     {
         _service = new GetAnimalByIdentifierService(_client, NullLogger<GetAnimalByIdentifierService>.Instance);
     }
