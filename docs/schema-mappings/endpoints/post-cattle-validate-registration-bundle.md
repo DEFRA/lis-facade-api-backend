@@ -156,7 +156,7 @@ Both LIS responses use the Errors array described above. Register an Animal does
 |-----------------------------------|---------------------|-----------|---------------------------|-------|
 | No corresponding header declared | LI-Request-Id | string (uuid) | 200, 404, 500, 503 | LIS describes a request identifier. Register an Animal declares no response headers for validate. Agree how the facade supplies it. |
 | No corresponding header declared | LI-Correlation-Id | string (uuid) | 200, 404, 500, 503 | LIS says a correlation identifier is generated if not provided. This operation declares no request header for it, so agree how the facade preserves or generates it. It is not a bundle or animal identifier. |
-| No corresponding header declared | Retry-After | integer | 503 | LIS describes a delay in seconds/minutes without fixing a single unit. Confirm the unit and how the facade determines the delay. |
+| No corresponding header declared | Retry-After | integer (seconds) | 503 | HTTP defines an integer Retry-After value as a delay in seconds. The LIS description mentions seconds/minutes, but the facade must emit seconds; agree how it determines the delay. |
 
 The LIS response headers are documented without a required declaration. They are separate from the response body fields and do not change their requiredness.
 
@@ -261,5 +261,5 @@ In the mapping tables, a row with **Missing fields: Yes** and **Possible breakin
 | Error responses | Convert one Register an Animal `ProblemDetails` object into a single-item LIS error array. This is a choice: alternatives are replacing the body with a facade-written error, using the optional nested LIS `errors` field, or returning fixed LIS errors by status code. Agree how to fill missing, null or over-long `type`, `title`, `detail` and `status` values, and set the LIS body `status` to match the HTTP status. Register an Animal `instance` has no LIS field. |
 | `404` meaning | Agree how the facade tells a missing bundle from an unknown LIS `requestId`, and what the LIS API client sees in each case. |
 | `401` mapping | Do not return a Register an Animal `401` unchanged. It may mean the facade's `x-api-key` was rejected, not that the LIS API client's credentials are wrong. Agree whether it maps to LIS `500` (proposed) or `503`; do not automatically convert it to `401` or `403`. |
-| `500` and `503` | Agree how timeouts, failures and unexpected Register an Animal responses become LIS `500` or `503`, using the LIS error format. Agree the LIS `Retry-After` unit. |
+| `500` and `503` | Agree how timeouts, failures and unexpected Register an Animal responses become LIS `500` or `503`, using the LIS error format. Emit LIS `Retry-After` as an integer number of seconds, as HTTP defines, and agree how the facade determines the delay. |
 | Authentication and headers | Handle LIS API client authentication and Register an Animal `x-api-key` authentication separately. Agree how the facade handles LIS `LI-Request-Id` and `LI-Correlation-Id`. |
