@@ -60,14 +60,14 @@ Register an Animal's `200` body contains the fields below. Every field has no LI
 | `entries.<componentName>.status` (string, required) | No LIS field for per-component status. Information lost. Message still valid. |
 | `entries.<componentName>.description` (string or null) | No LIS field for component descriptions. Information lost. Message still valid. |
 | `entries.<componentName>.durationSeconds` (number or string, default 0) | No LIS field for per-component duration. Information lost. Message still valid. |
-| `entries.<componentName>.data` (object or null) | No LIS field for component metadata. The object has no declared properties, so it cannot be mapped even if LIS had a place for it. Information lost. Message still valid. |
+| `entries.<componentName>.data` (object or null) | The LIS API has no health contract, so there is no LIS field for component metadata. The spec does not declare the object's properties. The object could still be passed through as opaque JSON if LIS had a field to receive it. Information lost because LIS has nowhere to hold it. Message still valid. |
 
 ### 503 Service Unavailable mapped to no LIS response (mapping unconfirmed)
 
 Register an Animal uses the same `HealthCheckResponse` body for `503` as for `200`, so the field table above applies. The spec gives no rule for which `status` values lead to `503`. The LIS API declares no `503` for this operation because it has no equivalent operation.
 
 **Response notes**
-* `totalDurationSeconds` and `durationSeconds` are typed as either a number or a string, with a numeric pattern. Any pass-through would need one type chosen.
+* `totalDurationSeconds` and `durationSeconds` are typed as either a number or a string, with a numeric pattern. A pass-through can keep either representation, so no single type has to be chosen. Normalising to one type is needed only if the facade adopts a narrower contract.
 * `entries` is a map with dynamic keys. The spec does not list the component names, so the field paths use `<componentName>`.
 * The spec gives examples for `status` (Healthy, Degraded, Unhealthy) but does not define a closed list of values.
 
@@ -100,8 +100,8 @@ Missing fields with Possible breaking change: No means information is lost becau
 | Finding | Impact |
 |---------|--------|
 | LIS API: no health operation exists, so every Register an Animal health field is a missing field. | Information loss only. Possible breaking change: No. |
-| Register an Animal: `totalDurationSeconds` and `durationSeconds` accept either number or string. | Type choice needed for any pass-through. Not a LIS mismatch because LIS has no matching field. |
-| Register an Animal: `entries.<componentName>.data` is an object with no declared properties. | Cannot be mapped to any LIS field. Information loss only. |
+| Register an Animal: `totalDurationSeconds` and `durationSeconds` accept either number or string. | Either representation can pass through unchanged. Normalising to one type is needed only if the facade adopts a narrower contract. Not a LIS mismatch because LIS has no matching field. |
+| Register an Animal: `entries.<componentName>.data` is an object or null. The spec declares no properties for it, so it could be passed through as opaque JSON. | Information loss only because the LIS API has no health field to receive it, not because of the unspecified properties. Possible breaking change: No. |
 | Register an Animal: `503` uses the same body as `200` and the spec does not say which status values cause `503`. | Facade cannot tell from the spec when `503` applies. |
 
 ## Recommendations and remaining gaps
