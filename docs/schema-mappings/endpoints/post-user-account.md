@@ -149,7 +149,7 @@ These are the working assumptions this document relies on. Items marked **(uncon
 
 | Area | Assumption |
 |------|------------|
-| Intended client | **(unconfirmed)** It is understood that this operation serves the front end (BE4FE), not LIS API clients. The Register an Animal spec does not say this. It is assumed this endpoint is not exposed through LIS until confirmed. |
+| Intended client | **(unconfirmed)** It is understood that this operation is used by the BE4FE. It is not clear whether LIS API clients would use it. The Register an Animal spec does not say this. It is assumed this endpoint is not exposed through LIS until confirmed, because LIS has no user operation. |
 | No LIS counterpart | No LIS endpoint, schema or field for user accounts exists in the LIS spec reviewed, so no mapping is proposed. The LIS spec was searched for user, account, profile and identity operations, and `GET /hauliers` and the site identifiers were considered and rejected as equivalents. |
 | Request claims | Request: no LIS field -> Register an Animal `sub`, `email`, `given_name` and `family_name`. No mapping exists. |
 | Response fields | Register an Animal response fields have no LIS destination and remain unmapped. |
@@ -178,7 +178,7 @@ In the mapping tables, **Missing fields: Yes** with **Possible breaking change: 
 | Area | Recommendation or remaining gap |
 |------|---------------------------------|
 | Endpoint scope | Confirm whether LIS clients need this endpoint. If not, the facade keeps it internal and this document records the outcome. The LIS API has no equivalent operation. |
-| Intended client | Ask the Register an Animal owners to confirm that this operation serves the front end (BE4FE) only, as is currently understood. |
+| Intended client | Ask the Register an Animal owners who this operation is for (it is understood to be used by the BE4FE) and whether LIS API clients would ever need it. |
 | Source of request fields | If the endpoint is exposed, agree where `sub`, `email`, `given_name` and `family_name` come from. Do not assume a LIS token claim equals a Register an Animal identifier. |
 | Personal data | Register an Animal accepts and returns email and names (personal data), and LIS has no field for them. If the endpoint is exposed, agree whether they may be sent to LIS API clients. |
 | Error body | If the endpoint is exposed, agree how the single Register an Animal `ProblemDetails` becomes a LIS `Errors` array (1 to 1000 items), how null `type`, `title`, `detail` and `status` values are handled, and which of the alternatives listed under the `400` section is used (unconfirmed). |
